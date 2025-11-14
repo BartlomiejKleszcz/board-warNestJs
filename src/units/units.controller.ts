@@ -25,4 +25,11 @@ export class UnitsController {
     getAllAvailableUnits(): Unit[] {
         return this.unitsService.getAllAvailableUnits();
     }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get unit template by its name like: line-infantry' })
+    @ApiResponse({ status: 200, description: 'The unit template.', type: CreateUnitDto })
+    getUnitById(@Param('id') id: UnitName ): Unit {
+        return this.unitsService.getUnitById(id);
+    }
 }

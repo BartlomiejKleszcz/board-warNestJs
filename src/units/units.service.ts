@@ -24,5 +24,7 @@ export class UnitsService {
         return this.factory.getAllUnitTemplates();
     }
 
-
+    getUnitById(id: UnitName): Unit {
+        return this.factory.createFromName(id);
+    }
 }
