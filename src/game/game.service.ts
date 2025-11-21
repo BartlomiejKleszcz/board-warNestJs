@@ -38,6 +38,7 @@ export class GameService {
         const board = this.boardService.getDefaultBoard();
 
         const game = this.createGame(player, playerArmy, enemyPlayer, enemyArmy, board);
+        game.phase = "deployment"
         this.games.push(game);
         return game;
     }
@@ -57,7 +58,7 @@ private createGame(
   enemy: enemy,
   enemyArmy,
   board,
-  status: 'in-progress',
+  phase: 'created',
   createdAt: new Date(),
 };
 
@@ -97,5 +98,21 @@ findById(gameId: number): Game {
     u.position.q === coords.q &&
     u.position.r === coords.r
   );
+}
+
+finishDeployment(gameId: number): Game | undefined {
+  const game: Game = this.findById(gameId);
+
+  const isGameInDeployment: boolean = game.phase === "deployment" ? true: false;
+
+  if (!isGameInDeployment) return undefined;
+
+  const isPlayerArmyDeployed: boolean = game.playerArmy.filter(unit => unit.position == null).length  > 0 ? true : false;
+  const isEnemyArmyDeployed: boolean = game.enemyArmy.filter(unit => unit.position == null).length  > 0 ? true : false;
+  if(!(isPlayerArmyDeployed && isEnemyArmyDeployed)) return undefined;
+
+  game.phase = 'battle';
+
+  return game;
 }
 }

@@ -9,6 +9,6 @@ export interface Game {
     enemy: Player;
     enemyArmy: Unit[];
     board: Board;
-    status: "in-progress" | "finished" | "aborted"
+    phase: "created" | "deployment" | "battle" | "finished"
     createdAt: Date;
 }
