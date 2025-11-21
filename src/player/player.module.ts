@@ -7,5 +7,6 @@ import { UnitsModule } from 'src/units/units.module';
   imports: [UnitsModule],
   providers: [PlayerService],
   controllers: [PlayerController],
+  exports: [PlayerService],
 })
 export class PlayerModule {}
