@@ -8,6 +8,7 @@ import { UnitsService } from 'src/units/units.service';
 import { Player } from 'src/player/domain/player';
 import { Board } from 'src/board/domain/board';
 import { HexCoords } from 'src/board/domain/hex.types';
+import { countMovement } from 'src/board/domain/hex.utils';
 
 @Injectable()
 export class GameService {
@@ -30,6 +31,7 @@ export class GameService {
         const enemyArmy: Unit[] = [];
         const colorEnemy: string = player.color === "red" ? "blue" : "red"
         const enemyPlayer: Player = this.playerService.createPlayer("Enemy", colorEnemy)
+        enemyPlayer.turn = false;
 
         playerArmy.forEach((unit) => {
         enemyArmy.push(this.unitService.createUnit(unit.id, enemyPlayer));
@@ -80,7 +82,13 @@ setUnitPosition(
   if (!unit) {
     throw new Error('Unit not found');
   }
-  unit.position = coords;
+  let isOccupied: boolean = this.isOccupied(game.playerArmy, coords)
+  isOccupied = this.isOccupied(game.enemyArmy, coords)
+  if(isOccupied){
+      unit.position = coords;
+  }else{
+    return undefined
+  }
 
   return game;
 
@@ -100,6 +108,7 @@ findById(gameId: number): Game {
   );
 }
 
+
 finishDeployment(gameId: number): Game | undefined {
   const game: Game = this.findById(gameId);
 
@@ -114,5 +123,20 @@ finishDeployment(gameId: number): Game | undefined {
   game.phase = 'battle';
 
   return game;
+}
+
+moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): HexCoords | undefined{
+   const game: Game = this.findById(gameId);
+   const isPassable = game.board.tiles.find(coords => coords.coords == targetCoords)?.passable
+   if(!isPassable){
+    return undefined
+   }
+   const player = this.playerService.findById(unitUniqueId)
+   const currentPosition = player?.units.find(unit => unit.uniqueId == unitUniqueId)?.position
+   if (!currentPosition) return undefined
+   const costMovement = countMovement(currentPosition,targetCoords, game.board)
+
+   return targetCoords
+
 }
 }

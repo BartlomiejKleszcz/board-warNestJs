@@ -1,3 +1,5 @@
+import { Unit } from "src/units/domain/unit.types";
+
 type axialCoords = {
     q: number;
     r: number;
@@ -22,4 +24,5 @@ export interface HexTile {
     terrain: TerrainType;
     passable: boolean;
     movementCost: number;
+    unit?: Unit
 }

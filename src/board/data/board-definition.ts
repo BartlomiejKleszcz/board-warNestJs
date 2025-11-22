@@ -93,4 +93,7 @@ for (let q = 0; q < BOARD_WIDTH; q++) {
 
 export const DEFAULT_BOARD: GameBoard = {
   tiles,
+  getHexTile() {
+    return tiles;
+  },
 };

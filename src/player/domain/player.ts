@@ -6,6 +6,7 @@ export class Player {
     color: string;
     units: Unit[];
     budget: number = 1000;
+    turn: boolean = true;
 
     constructor(id: number, name: string, color: string) {
         this.id = id;
