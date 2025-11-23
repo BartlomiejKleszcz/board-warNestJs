@@ -38,8 +38,7 @@ export class BoardController {
     if (!body?.currentPosition || !body?.targetCoords) {
       throw new BadRequestException('currentPosition and targetCoords are required');
     }
-    const board = this.boardService.getDefaultBoard();
-    const movementCost = countMovement(body.currentPosition, body.targetCoords, board);
-    return { targetCoords: body.targetCoords, movementCost };
+
+    return this.boardService.countDistanceBetweenTwoTilles(body.currentPosition, body.targetCoords);
   }
 }

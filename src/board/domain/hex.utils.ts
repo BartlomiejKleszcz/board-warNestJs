@@ -46,23 +46,21 @@ function determineDirection(positionHexTile: HexTile, targetHexTile: HexTile, bo
   return undefined
   }
 
-  function isPassable(newCoords: HexCoords, board: Board):boolean{
-    if(board.tiles.find(tile => tile.coords === newCoords)?.passable) return true;
-    return false; 
-  }
 
-type Road = {
+
+};
+export type Road = {
   movementCost: number;
   road: HexTile[];
-};
 
-type TileWithCostReach = {
+
+};
+export type TileWithCostReach = {
   tile: HexTile;
   cost: number;
   visited: boolean;
-};
-
-function roadByDijkstra(
+}
+export function roadByDijkstra(
   positionHexTile: HexTile,
   targetHexTile: HexTile,
   board: Board
@@ -110,7 +108,7 @@ function roadByDijkstra(
       return { movementCost: current.cost, road: path.reverse() };
     }
 
-    const neighbors: HexTile[] = board.getNeighbors(current.tile, board);
+    const neighbors: HexTile[] = getNeighbors(current.tile, board);
 
     for (const n of neighbors) {
       if (inList(closed, n)) continue;
@@ -132,5 +130,16 @@ function roadByDijkstra(
   return undefined;
 }
 
-
+function getNeighbors(tile: HexTile, board: Board): HexTile[] {
+  const dirs = [
+    { q: 1, r: 0 },  { q: -1, r: 0 },
+    { q: 0, r: 1 },  { q: 0, r: -1 },
+  ];
+  return dirs
+    .map(({ q, r }) =>
+      board.tiles.find(
+        t => t.coords.q === tile.coords.q + q && t.coords.r === tile.coords.r + r,
+      ),
+    )
+    .filter((t): t is HexTile => !!t && t.passable);
 }

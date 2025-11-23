@@ -11,6 +11,7 @@ export enum TerrainType {
   Hill = 'hill',
   Water = 'water',
   City = 'city',
+  Swamp = 'swamp',
   Road = 'road',
   Bridge = 'bridge',
   Ford = 'ford'
