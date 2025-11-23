@@ -17,7 +17,8 @@ export class PlayerService {
             name,
             color,
             units: [],
-            budget: 1000
+            budget: 1000,
+            turn: true
         };
         this.players.push(newPlayer);
         return newPlayer;

@@ -1,7 +1,7 @@
 // src/board/data/board-definition.ts
 
 import { HexTile, TerrainType } from '../domain/hex.types';
-import GameBoard from '../domain/board';
+import GameBoard, { Board } from '../domain/board';
 
 const BOARD_WIDTH = 30;
 const BOARD_HEIGHT = 30;
@@ -96,4 +96,7 @@ export const DEFAULT_BOARD: GameBoard = {
   getHexTile() {
     return tiles;
   },
+  getNeighbors: function (tile: HexTile, board: Board): HexTile[] {
+    throw new Error('Function not implemented.');
+  }
 };
