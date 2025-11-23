@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { CreateUnitDto } from './dto/create-unit-dto';
 import type { Unit, UnitName } from './domain/unit.types';
 import { UnitsService } from './units.service';
 import { GameUnit } from './domain/game-unit';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AttackUnitDto } from './dto/attack-unit.dto';
 
 @Controller('units')
 export class UnitsController {
@@ -17,6 +18,12 @@ export class UnitsController {
         const unit: GameUnit =this.unitsService.createUnitWithoutPlayer(id);
 
         return unit
+    }
+
+    @Post('attack')
+    @ApiOperation({ summary: 'Perform an attack between two units (in-memory).' })
+    attackUnit(@Body() body: AttackUnitDto) {
+        return this.unitsService.attack(body.attackerId, body.defenderId, body.mode);
     }
 
     @Get()
