@@ -60,13 +60,14 @@ export class PlayerService {
 
     // Below: legacy in-memory unit helpers; adjust when units are persisted in DB.
     async addUnitToPlayer(playerId: Player['id'], unitIdStr: string): Promise<Player | undefined> {
-        const player = await this.playerRepository.findbyID(playerId);
+        const dbPlayer = await this.playerRepository.findbyID(playerId);
         const unitId: UnitName = unitIdStr as UnitName;
 
-        if (!player) {
+        if (!dbPlayer) {
             return undefined;
         }
 
+        const player = this.toDomain(dbPlayer as PrismaPlayer);
         const newUnit = this.unitService.createUnit(unitId, player);
         player.units.push(newUnit);
 

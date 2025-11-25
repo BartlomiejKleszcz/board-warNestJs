@@ -37,6 +37,19 @@ enum GamePhase {
   finished
 }
 
+enum GameStatus {
+  not_started
+  in_progress
+  finished
+  paused
+}
+
+enum GameActionType {
+  MOVE
+  ATTACK
+  END_TURN
+}
+
 model Player {
   id        Int      @id @default(autoincrement())
   name      String
@@ -57,6 +70,9 @@ model Game {
   id        Int       @id @default(autoincrement())
   phase     GamePhase @default(created)
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  status    GameStatus @default(not_started)
+  stateJson Json?
 
   // dwóch graczy z Twojego interfejsu Game
   playerId Int
@@ -69,6 +85,8 @@ model Game {
 
   // plansza gry
   board Board?
+
+  actions GameAction[]
 }
 
 model Board {
@@ -129,4 +147,15 @@ model Unit {
 
   @@index([playerId])
   @@index([gameId])
+}
+
+model GameAction {
+  id         String         @id @default(uuid())
+  gameId     Int
+  game       Game           @relation(fields: [gameId], references: [id])
+  turnNumber Int
+  playerId   Int
+  type       GameActionType
+  payload    Json
+  createdAt  DateTime       @default(now())
 }

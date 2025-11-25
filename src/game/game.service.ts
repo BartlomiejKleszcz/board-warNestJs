@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, GameActionType as PrismaGameActionType, GameStatus as PrismaGameStatus } from '@prisma/client';
 import { BoardService } from 'src/board/board.service';
 import { PlayerService } from 'src/player/player.service';
 import { Game } from './domain/game';
@@ -9,6 +10,14 @@ import { Player } from 'src/player/domain/player';
 import { Board } from 'src/board/domain/board';
 import { HexCoords } from 'src/board/domain/hex.types';
 import { countMovement } from 'src/board/domain/hex.utils';
+import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  GameState,
+  HexTileState,
+  PlayerInGameState,
+  UnitOnBoardState,
+} from './model/game-state';
+import { ApplyActionDto } from './dto/apply-action.dto';
 
 @Injectable()
 export class GameService {
@@ -19,7 +28,9 @@ export class GameService {
     constructor(
         private readonly playerService: PlayerService, 
         private readonly boardService: BoardService,
-        private readonly unitService: UnitsService) {}
+        private readonly unitService: UnitsService,
+        private readonly prisma: PrismaService,
+    ) {}
 
 async createSoloGame(dto: CreateSoloGameDto): Promise<Game> {
   const player = await this.playerService.findById(dto.playerId);
@@ -135,4 +146,194 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
    return targetCoords
 
 }
+
+  async createStatefulSoloGame(dto: CreateSoloGameDto): Promise<GameState> {
+    const player = await this.playerService.findById(dto.playerId);
+    if (!player) throw new NotFoundException("Player doesn't exist");
+
+    const enemy = await this.resolveEnemy(player);
+    const board = this.boardService.getDefaultBoard();
+    const playerArmy = this.unitService.getPlayerUnits(player.id);
+    const enemyArmy = this.unitService.getPlayerUnits(enemy.id);
+
+    const baseState = this.buildSnapshot(
+      '',
+      player,
+      enemy,
+      playerArmy,
+      enemyArmy,
+      board,
+    );
+
+    const createdGame = await this.prisma.game.create({
+      data: {
+        phase: 'created',
+        playerId: player.id,
+        enemyId: enemy.id,
+        status: PrismaGameStatus.not_started,
+      },
+    });
+
+    const stateWithId: GameState = { ...baseState, gameId: createdGame.id.toString() };
+    await this.prisma.game.update({
+      where: { id: createdGame.id },
+      data: {
+        stateJson: stateWithId as unknown as Prisma.InputJsonValue,
+        status: stateWithId.status as PrismaGameStatus,
+      },
+    });
+
+    return stateWithId;
+  }
+
+  async getGameState(gameId: number): Promise<GameState> {
+    const game = await this.prisma.game.findUnique({
+      where: { id: gameId },
+    });
+
+    if (!game || !game.stateJson) {
+      throw new NotFoundException('Game not found');
+    }
+
+    return game.stateJson as unknown as GameState;
+  }
+
+  async applyAction(gameId: number, actionDto: ApplyActionDto): Promise<GameState> {
+    const currentState = await this.getGameState(gameId);
+    const updatedState = this.reduceAction({ ...currentState }, actionDto);
+
+    await this.prisma.$transaction([
+      this.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          stateJson: updatedState as unknown as Prisma.InputJsonValue,
+          status: updatedState.status as PrismaGameStatus,
+        },
+      }),
+      this.prisma.gameAction.create({
+        data: {
+          gameId,
+          turnNumber: updatedState.turnNumber,
+          playerId: actionDto.playerId ?? updatedState.currentPlayerId,
+          type: actionDto.type as PrismaGameActionType,
+          payload: (actionDto.payload ?? {}) as unknown as Prisma.InputJsonValue,
+        },
+      }),
+    ]);
+
+    return updatedState;
+  }
+
+  private reduceAction(currentState: GameState, actionDto: ApplyActionDto): GameState {
+    const nextState: GameState = {
+      ...currentState,
+      status: this.bumpStatus(currentState.status),
+      units: currentState.units.map(u => ({ ...u })),
+    };
+
+    switch (actionDto.type) {
+      case 'MOVE': {
+        const { unitId, q, r } = actionDto.payload ?? {};
+        if (unitId !== undefined && q !== undefined && r !== undefined) {
+          nextState.units = nextState.units.map(u =>
+            u.unitId === String(unitId) ? { ...u, q, r } : u,
+          );
+        }
+        break;
+      }
+      case 'ATTACK': {
+        const { targetUnitId, damage } = actionDto.payload ?? {};
+        if (targetUnitId !== undefined && typeof damage === 'number') {
+          nextState.units = nextState.units.map(u =>
+            u.unitId === String(targetUnitId)
+              ? { ...u, currentHP: Math.max(0, u.currentHP - damage) }
+              : u,
+          );
+        }
+        break;
+      }
+      case 'END_TURN': {
+        nextState.turnNumber += 1;
+        nextState.currentPlayerId = this.nextPlayerId(
+          nextState.players,
+          nextState.currentPlayerId,
+        );
+        break;
+      }
+      default:
+        break;
+    }
+
+    return nextState;
+  }
+
+  private bumpStatus(status: GameState['status']): GameState['status'] {
+    if (status === 'finished' || status === 'paused') {
+      return status;
+    }
+    return status === 'not_started' ? 'in_progress' : status;
+  }
+
+  private nextPlayerId(players: PlayerInGameState[], currentPlayerId: number): number {
+    if (!players.length) return currentPlayerId;
+    const currentIdx = players.findIndex(p => p.playerId === currentPlayerId);
+    const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % players.length;
+    return players[nextIdx].playerId;
+  }
+
+  private buildSnapshot(
+    gameId: string,
+    player: Player,
+    enemy: Player,
+    playerArmy: Unit[],
+    enemyArmy: Unit[],
+    board: Board,
+  ): GameState {
+    const playersState: PlayerInGameState[] = [
+      { playerId: player.id, name: player.name, color: player.color },
+      { playerId: enemy.id, name: enemy.name, color: enemy.color },
+    ];
+
+    const unitsState = [...playerArmy, ...enemyArmy].map(unit => this.toUnitState(unit));
+
+    return {
+      gameId,
+      turnNumber: 1,
+      currentPlayerId: player.id,
+      status: 'not_started',
+      players: playersState,
+      units: unitsState,
+      tiles: this.toTilesState(board),
+    };
+  }
+
+  private toUnitState(unit: Unit): UnitOnBoardState {
+    const hp = this.unitService.getCurrentHp(unit.uniqueId) ?? unit.maxHp;
+    return {
+      unitId: unit.uniqueId.toString(),
+      ownerPlayerId: unit.playerId,
+      template: unit.id,
+      currentHP: hp,
+      q: unit.position?.q ?? 0,
+      r: unit.position?.r ?? 0,
+    };
+  }
+
+  private toTilesState(board: Board): HexTileState[] {
+    return board.tiles.map(tile => ({
+      q: tile.coords.q,
+      r: tile.coords.r,
+      terrain: tile.terrain,
+      passable: tile.passable,
+      movementCost: tile.movementCost,
+    }));
+  }
+
+  private async resolveEnemy(player: Player): Promise<Player> {
+    const colorEnemy = player.color === 'red' ? 'blue' : 'red';
+    let enemy = await this.playerService.findById(1);
+    if (!enemy) enemy = await this.playerService.create('Enemy', colorEnemy);
+    enemy.turn = false;
+    return enemy;
+  }
 }

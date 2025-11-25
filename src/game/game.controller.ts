@@ -1,10 +1,11 @@
-import { Body, Controller, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { GameService } from './game.service';
 import { CreateSoloGameDto } from './dto/create-solo-game.dto';
 import { SetUnitPosition } from './dto/SetUnitPosition.dto';
 import { HexCoords } from 'src/board/domain/hex.types';
 import { Game } from './domain/game';
+import { ApplyActionDto } from './dto/apply-action.dto';
 
 @Controller('game')
 export class GameController {
@@ -29,6 +30,27 @@ export class GameController {
                         }
                         return this.gameService.setUnitPosition(gameId, unitUniqueId, coords)
                     }
+
+    @Post('state/solo')
+    @ApiOperation({summary: 'create solo game state and persist snapshot'})
+    async createStatefulSoloGame(@Body() dto: CreateSoloGameDto) {
+        return this.gameService.createStatefulSoloGame(dto);
+    }
+
+    @Get(':gameId/state')
+    @ApiOperation({summary: 'load persisted game state snapshot'})
+    async getGameState(@Param('gameId', ParseIntPipe) gameId: number) {
+        return this.gameService.getGameState(gameId);
+    }
+
+    @Post(':gameId/actions')
+    @ApiOperation({summary: 'apply action and update game state'})
+    async applyAction(
+        @Param('gameId', ParseIntPipe) gameId: number,
+        @Body() actionDto: ApplyActionDto,
+    ) {
+        return this.gameService.applyAction(gameId, actionDto);
+    }
 
 
 }

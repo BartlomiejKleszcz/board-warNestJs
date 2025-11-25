@@ -21,7 +21,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 5,
     attackRange: 2,
     defense: 5,
-    speed: 2,
+    speed: 4,
     cost: 30,
   },
   'line-infantry': {
@@ -32,7 +32,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 10,
     attackRange: 3,
     defense: 10,
-    speed: 2,
+    speed: 4,
     cost: 45,
   },
     'guard-infantry': {
@@ -43,7 +43,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 15,
     attackRange: 4,
     defense: 15,
-    speed: 1,
+    speed: 3,
     cost: 65,
     },
     'light-cavalry': {
@@ -54,7 +54,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 0,
     attackRange: 1,
     defense: 8,
-    speed: 4,
+    speed: 8,
     cost: 50,
     },
     'dragon-cavalry': {
@@ -65,7 +65,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 10,
     attackRange: 2,
     defense: 12,
-    speed: 3,
+    speed: 6,
     cost: 80,
     },
     'heavy-cavalry': {
@@ -76,7 +76,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 0,
     attackRange: 1,
     defense: 20,
-    speed: 2,
+    speed: 6,
     cost: 120,
     },
     'twelve-pounder-cannon': {
@@ -87,7 +87,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 80,
     attackRange: 8,
     defense: 5,
-    speed: 1,
+    speed: 3,
     cost: 150,
     },
     'six-pounder-cannon': {
@@ -98,7 +98,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 50,
     attackRange: 6,
     defense: 3,
-    speed: 1,
+    speed: 3,
     cost: 100,
     },
     'howitzer-cannon': {
@@ -109,7 +109,7 @@ export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {
     rangedAttack: 70,
     attackRange: 7,
     defense: 4,
-    speed: 1,
+    speed: 3,
     cost: 130,
     },
 };
