@@ -55,17 +55,25 @@ export class UnitsService {
     private endReason: string | undefined;
 
     createUnit(id: UnitName, player: Player): Unit {
-        const newUnit = this.factory.createFromName(id);
-        newUnit.playerId = player.id;
-        player.budget -= newUnit.cost;
-        if (player.budget < 0) {
-            throw new Error('Insufficient budget to create this unit.');
-        }
-        return this.registerUnit(newUnit);
+        return this.createUnitForPlayer(id, player, true);
     }
     createUnitWithoutPlayer(id: UnitName): Unit {
         const newUnit = this.factory.createFromName(id);
         newUnit.playerId = 0;
+        return this.registerUnit(newUnit);
+    }
+
+    createUnitForPlayer(id: UnitName, player: Player, subtractBudget = false): Unit {
+        const newUnit = this.factory.createFromName(id);
+        newUnit.playerId = player.id;
+
+        if (subtractBudget) {
+            player.budget -= newUnit.cost;
+            if (player.budget < 0) {
+                throw new Error('Insufficient budget to create this unit.');
+            }
+        }
+
         return this.registerUnit(newUnit);
     }
 
@@ -77,6 +85,35 @@ export class UnitsService {
 
     getPlayerUnits(playerId: Player['id']): Unit[] {
         return this.customUnits.filter(unit => unit.playerId === playerId);
+    }
+
+    resetPlayerUnits(playerId: Player['id']) {
+        const remainingUnits = this.customUnits.filter(unit => unit.playerId !== playerId);
+        const remainingIds = new Set(remainingUnits.map(unit => unit.uniqueId));
+
+        this.customUnits = remainingUnits;
+
+        Array.from(this.unitHp.keys()).forEach(uniqueId => {
+            if (!remainingIds.has(uniqueId)) {
+                this.unitHp.delete(uniqueId);
+            }
+        });
+
+        this.totalDamageByPlayer.delete(playerId);
+    }
+
+    resetUnitsHp(units: Unit[]) {
+        units.forEach(unit => {
+            this.unitHp.set(unit.uniqueId, unit.maxHp);
+        });
+    }
+
+    resetBattleStatsForPlayers(playerIds: Player['id'][]) {
+        playerIds.forEach(id => this.totalDamageByPlayer.delete(id));
+    }
+
+    cloneArmyForPlayer(units: Unit[], player: Player): Unit[] {
+        return units.map(unit => this.createUnitForPlayer(unit.id, player));
     }
 
     startGame(config: GameConfig) {
@@ -124,7 +161,8 @@ export class UnitsService {
 
         const attackValue = mode === 'ranged' ? attacker.rangedAttack : attacker.meleeAttack;
         const rawDamage = attackValue - defender.defense;
-        const damage = Math.max(1, rawDamage);
+        const roll = Math.floor(Math.random() * 6) + 1;
+        const damage = roll === 6 ? 0 : Math.max(1, rawDamage);
 
         this.recordDamage(attacker.playerId, damage);
 

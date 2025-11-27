@@ -50,6 +50,23 @@ enum GameActionType {
   END_TURN
 }
 
+enum BattleResult {
+  win
+  lose
+  draw
+}
+
+model User {
+  id           Int          @id
+  email        String       @unique
+  passwordHash String
+  displayName  String
+  createdAt    DateTime     @default(now())
+
+  player Player @relation(fields: [id], references: [id])
+  battles UserBattle[]
+}
+
 model Player {
   id        Int      @id @default(autoincrement())
   name      String
@@ -64,6 +81,8 @@ model Player {
   // gry w których jest graczem głównym lub wrogiem
   gamesAsPlayer Game[] @relation("playerGames")
   gamesAsEnemy  Game[] @relation("enemyGames")
+
+  user User?
 }
 
 model Game {
@@ -158,4 +177,19 @@ model GameAction {
   type       GameActionType
   payload    Json
   createdAt  DateTime       @default(now())
+}
+
+model UserBattle {
+  id           Int           @id @default(autoincrement())
+  userId       Int
+  gameId       Int?
+  result       BattleResult
+  damageDealt  Int           @default(0)
+  damageTaken  Int           @default(0)
+  units        Json
+  createdAt    DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
 }

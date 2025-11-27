@@ -154,7 +154,10 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
     const enemy = await this.resolveEnemy(player);
     const board = this.boardService.getDefaultBoard();
     const playerArmy = this.unitService.getPlayerUnits(player.id);
-    const enemyArmy = this.unitService.getPlayerUnits(enemy.id);
+    this.unitService.resetUnitsHp(playerArmy);
+    this.unitService.resetPlayerUnits(enemy.id);
+    const enemyArmy = this.unitService.cloneArmyForPlayer(playerArmy, enemy);
+    this.unitService.resetBattleStatsForPlayers([player.id, enemy.id]);
 
     const baseState = this.buildSnapshot(
       '',
