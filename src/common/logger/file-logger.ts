@@ -1,12 +1,12 @@
-import { Logger, LogLevel } from '@nestjs/common';
+import { ConsoleLogger, LogLevel } from '@nestjs/common';
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
-export class FileLogger extends Logger {
+export class FileLogger extends ConsoleLogger {
   private static stream = FileLogger.createStream();
 
   static setLogLevels(levels: LogLevel[]) {
-    Logger.overrideLogger(levels);
+    ConsoleLogger.overrideLogger(levels);
   }
 
   private static createStream() {
