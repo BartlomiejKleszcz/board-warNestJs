@@ -4,14 +4,17 @@ import { PlayerService } from './player.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { Unit } from 'src/units/domain/unit.types';
 import { PlayerRepositoryAdapter } from 'src/infrastructure/PlayerRepositoryAdapter';
+import { UnitsService } from 'src/units/units.service';
 
 @Controller('players')
 export class PlayerController {
 
     private readonly playerService: PlayerService;
 
-    constructor(playerService: PlayerService,
-                playerRepository: PlayerRepositoryAdapter
+    constructor(
+        playerService: PlayerService,
+        playerRepository: PlayerRepositoryAdapter,
+        private readonly unitsService: UnitsService,
     ) {
         this.playerService = playerService;
     }
@@ -54,6 +57,14 @@ export class PlayerController {
     @ApiResponse({ status: 200, description: 'The player has been successfully deleted.' })
     deletePlayer(@Param('id') id: number) {
         return this.playerService.deletePlayer(id);
+    }
+
+    @Delete(':playerId/units')
+    @ApiOperation({ summary: 'Reset all units for a player (in-memory army)' })
+    @ApiResponse({ status: 200, description: 'Units cleared for the player.' })
+    clearUnitsForPlayer(@Param('playerId', ParseIntPipe) playerId: number) {
+        this.playerService.resetUnits(playerId);
+        return { success: true };
     }
 
     @Post(':playerId/units/:unitId')

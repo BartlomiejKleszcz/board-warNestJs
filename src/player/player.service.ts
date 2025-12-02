@@ -41,12 +41,21 @@ export class PlayerService {
 
     async findAll(): Promise<Player[]> {
         const players = await this.playerRepository.findAll();
-        return players.map((p) => this.toDomain(p as PrismaPlayer));
+        return players.map((p) => {
+            const domain = this.toDomain(p as PrismaPlayer);
+            domain.units = this.unitService.getPlayerUnits(domain.id);
+            return domain;
+        });
     }
 
     async findById(id: Player['id']): Promise<Player | undefined> {
         const player = await this.playerRepository.findbyID(id);
-        return player ? this.toDomain(player as PrismaPlayer) : undefined;
+        if (!player) {
+            return undefined;
+        }
+        const domain = this.toDomain(player as PrismaPlayer);
+        domain.units = this.unitService.getPlayerUnits(domain.id);
+        return domain;
     }
 
     deletePlayer(id: number) {
@@ -72,6 +81,10 @@ export class PlayerService {
         player.units.push(newUnit);
 
         return player;
+    }
+
+    resetUnits(playerId: Player['id']): void {
+        this.unitService.resetPlayerUnits(playerId);
     }
 
     deleteUnitFromPlayer(playerId: Player['id'], uniqueId: number): Player | undefined {
