@@ -19,14 +19,22 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new AllExceptionsFilter());
   
-  const config = new DocumentBuilder()
+    const config = new DocumentBuilder()
     .setTitle('Board War API')
-    .setDescription('The Board War API description')
+    .setDescription('API documentation for Board War backend')
     .setVersion('1.0')
-    .addTag('board-war')
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/', app, documentFactory);
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  // UI Swaggera pod /api
+  SwaggerModule.setup('api', app, document);
+
+  // RĘCZNIE dodany JSON pod /api-json
+  app.use('/api-json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(document);
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
