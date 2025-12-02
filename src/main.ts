@@ -9,6 +9,8 @@ async function bootstrap() {
   const logger = new FileLogger('Bootstrap');
   const app = await NestFactory.create(AppModule, { logger });
 
+  app.setGlobalPrefix('api');
+
   const envOrigins =
     process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()).filter(Boolean) ?? [];
   const extraOrigins = ['https://boardwar.toadres.pl', 'https://boardwar.bieda.it'];
@@ -36,9 +38,9 @@ async function bootstrap() {
     .build();
 
   const swaggerDoc = SwaggerModule.createDocument(app, swaggerConfig);
-  const swaggerPath = 'api'; 
+  const swaggerPath = 'api/docs'; 
   SwaggerModule.setup(swaggerPath, app, swaggerDoc, {
-    jsonDocumentUrl: 'api-json',
+    jsonDocumentUrl: 'api/api-json',
     customSiteTitle: 'Board War API Docs',
   });
 
