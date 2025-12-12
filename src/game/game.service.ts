@@ -173,7 +173,7 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
         phase: 'created',
         playerId: player.id,
         enemyId: enemy.id,
-        status: PrismaGameStatus.not_started,
+        status: 'not_started' as PrismaGameStatus,
       },
     });
 
