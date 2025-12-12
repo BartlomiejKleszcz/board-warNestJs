@@ -1,5 +1,15 @@
-import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Min } from 'class-validator'; // walidatory rekordow
-import { type BattleResult, BattleResult as BattleResultEnum } from '@prisma/client'; // typ + wartosci enumu
+import {
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator'; // walidatory rekordow
+import {
+  type BattleResult,
+  BattleResult as BattleResultEnum,
+} from '@prisma/client'; // typ + wartosci enumu
 
 export class RecordBattleDto {
   @IsOptional()

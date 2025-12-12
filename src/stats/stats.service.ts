@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'; // DI serwisu
-import { type BattleResult, BattleResult as BattleResultEnum, Prisma } from '@prisma/client'; // enum wynikow + typy JSON
+import { BattleResult as BattleResultEnum, Prisma } from '@prisma/client'; // enum wynikow + typy JSON
 import { PrismaService } from '../prisma/prisma.service'; // klient bazy
 import { RecordBattleDto } from './dto/record-battle.dto'; // dto zapisu bitwy
 
@@ -8,7 +8,7 @@ export class StatsService {
   constructor(private readonly prisma: PrismaService) {} // wstrzykniety prisma
 
   async recordBattle(userId: number, dto: RecordBattleDto) {
-    return this.prisma.userBattle.create({
+    const battle = await this.prisma.userBattle.create({
       data: {
         userId, // wlasciciel rekordu
         gameId: dto.gameId ?? null, // powiazanie z gra
@@ -18,6 +18,7 @@ export class StatsService {
         units: dto.units as unknown as Prisma.JsonArray, // zapis jednostek
       },
     });
+    return battle;
   }
 
   async getUserStats(userId: number) {
@@ -36,7 +37,14 @@ export class StatsService {
         if (battle.result === BattleResultEnum.draw) acc.draws += 1; // remisy
         return acc; // zwroc akumulator
       },
-      { battles: 0, wins: 0, losses: 0, draws: 0, damageDealt: 0, damageTaken: 0 },
+      {
+        battles: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        damageDealt: 0,
+        damageTaken: 0,
+      },
     );
 
     return { total: totals, battles }; // laczne statystyki + lista bitew
