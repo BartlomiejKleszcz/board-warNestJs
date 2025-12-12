@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+import { Module } from '@nestjs/common'; // dekorator modulu
+import { PrismaService } from './prisma.service'; // klient Prisma
 
 @Module({
-    providers: [PrismaService],
-    exports: [PrismaService]
+    providers: [PrismaService], // rejestruj serwis
+    exports: [PrismaService] // udostepnij innym modulom
 })
 export class PrismaModule {
 

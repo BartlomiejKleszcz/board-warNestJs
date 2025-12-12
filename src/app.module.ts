@@ -1,21 +1,21 @@
-﻿import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UnitsModule } from './units/units.module';
-import { PlayerModule } from './player/player.module';
-import { BoardModule } from './board/board.module';
-import { GameModule } from './game/game.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { StatsModule } from './stats/stats.module';
+import { Module } from '@nestjs/common'; // dekorator modulu
+import { ConfigModule } from '@nestjs/config'; // ladowanie zmiennych env
+import { AppController } from './app.controller'; // kontroler root
+import { AppService } from './app.service'; // serwis root
+import { UnitsModule } from './units/units.module'; // modul jednostek
+import { PlayerModule } from './player/player.module'; // modul graczy
+import { BoardModule } from './board/board.module'; // modul planszy
+import { GameModule } from './game/game.module'; // modul gry
+import { PrismaModule } from './prisma/prisma.module'; // modul ORM
+import { AuthModule } from './auth/auth.module'; // modul auth
+import { UserModule } from './user/user.module'; // modul uzytkownikow
+import { StatsModule } from './stats/stats.module'; // modul statystyk
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['.env'],
+      isGlobal: true, // udostepnij config w calym app
+      envFilePath: ['.env'], // sciezka do pliku env
     }),
     UnitsModule,
     PlayerModule,
@@ -26,8 +26,7 @@ import { StatsModule } from './stats/stats.module';
     UserModule,
     StatsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController], // rejestracja kontrolera root
+  providers: [AppService], // rejestracja serwisu root
 })
 export class AppModule {}
-

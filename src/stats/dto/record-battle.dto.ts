@@ -1,24 +1,24 @@
-import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Min } from 'class-validator';
-import { BattleResult } from '@prisma/client';
+import { IsArray, IsEnum, IsInt, IsOptional, IsPositive, IsString, Min } from 'class-validator'; // walidatory rekordow
+import { BattleResult } from '@prisma/client'; // enum wyniku bitwy
 
 export class RecordBattleDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  gameId?: number;
+  gameId?: number; // opcjonalny id gry
 
   @IsEnum(BattleResult)
-  result!: BattleResult;
+  result!: BattleResult; // wynik (win/lose/draw)
 
   @IsInt()
   @Min(0)
-  damageDealt!: number;
+  damageDealt!: number; // zadane obrazenia
 
   @IsInt()
   @Min(0)
-  damageTaken!: number;
+  damageTaken!: number; // otrzymane obrazenia
 
   @IsArray()
   @IsString({ each: true })
-  units!: string[];
+  units!: string[]; // lista jednostek w bitwie
 }

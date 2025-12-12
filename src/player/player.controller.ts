@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { PlayerService } from './player.service';
-import { CreatePlayerDto } from './dto/create-player.dto';
-import { Unit } from 'src/units/domain/unit.types';
-import { PlayerRepositoryAdapter } from 'src/infrastructure/PlayerRepositoryAdapter';
-import { UnitsService } from 'src/units/units.service';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common'; // dekoratory nest
+import { ApiOperation, ApiResponse } from '@nestjs/swagger'; // swagger docs
+import { PlayerService } from './player.service'; // logika graczy
+import { CreatePlayerDto } from './dto/create-player.dto'; // dto tworzenia
+import { Unit } from 'src/units/domain/unit.types'; // typ jednostki
+import { PlayerRepositoryAdapter } from 'src/infrastructure/PlayerRepositoryAdapter'; // adapter bazy
+import { UnitsService } from 'src/units/units.service'; // serwis jednostek
 
 @Controller('players')
 export class PlayerController {
@@ -12,11 +12,11 @@ export class PlayerController {
     private readonly playerService: PlayerService;
 
     constructor(
-        playerService: PlayerService,
-        playerRepository: PlayerRepositoryAdapter,
-        private readonly unitsService: UnitsService,
+        playerService: PlayerService, // logika graczy
+        playerRepository: PlayerRepositoryAdapter, // aby wymusic DI adaptera
+        private readonly unitsService: UnitsService, // serwis jednostek (uzywany posrednio)
     ) {
-        this.playerService = playerService;
+        this.playerService = playerService; // przypisz instancje
     }
 
     // @Post('create')
@@ -28,43 +28,43 @@ export class PlayerController {
     @Post('create')
     @ApiOperation({summary: 'create a new player'})
     createPlayerDb(@Body() createPlayerDto: CreatePlayerDto)  {
-        return this.playerService.create(createPlayerDto.name, createPlayerDto.color)
+        return this.playerService.create(createPlayerDto.name, createPlayerDto.color) // tworzy gracza w bazie
     }
 
     @Get()
     @ApiOperation({ summary: 'Get all players' })
     @ApiResponse({ status: 200, description: 'List of all players.' })
     getAllPlayers() {
-        return this.playerService.findAll();
+        return this.playerService.findAll(); // lista wszystkich graczy
     }
 
     @Get(':id')
     @ApiOperation({ summary: 'Get player by ID' })
     @ApiResponse({ status: 200, description: 'The player with the specified ID.' })
     getPlayerById(@Param('id', ParseIntPipe) id: number ) {
-        return this.playerService.findById(id);
+        return this.playerService.findById(id); // pobierz gracza po id
     }
 
     @Put('update/:id')
     @ApiOperation({ summary: 'Update player details' })
     @ApiResponse({ status: 200, description: 'The player has been successfully updated.' })
     updatePlayer(@Param('id') id: number, @Body() updatePlayerDto: CreatePlayerDto) {
-        return this.playerService.updatePlayer(id, updatePlayerDto.name, updatePlayerDto.color);
+        return this.playerService.updatePlayer(id, updatePlayerDto.name, updatePlayerDto.color); // aktualizuj dane gracza
     }
 
     @Delete('delete/:id')
     @ApiOperation({ summary: 'Delete a player by ID' })
     @ApiResponse({ status: 200, description: 'The player has been successfully deleted.' })
     deletePlayer(@Param('id') id: number) {
-        return this.playerService.deletePlayer(id);
+        return this.playerService.deletePlayer(id); // usun gracza
     }
 
     @Delete(':playerId/units')
     @ApiOperation({ summary: 'Reset all units for a player (in-memory army)' })
     @ApiResponse({ status: 200, description: 'Units cleared for the player.' })
     clearUnitsForPlayer(@Param('playerId', ParseIntPipe) playerId: number) {
-        this.playerService.resetUnits(playerId);
-        return { success: true };
+        this.playerService.resetUnits(playerId); // czysci jednostki in-memory
+        return { success: true }; // potwierdzenie
     }
 
     @Post(':playerId/units/:unitId')
@@ -74,7 +74,7 @@ export class PlayerController {
         @Param('playerId', ParseIntPipe) playerId: number, 
         @Param('unitId') unitId: string) {
         
-        const player = this.playerService.addUnitToPlayer(playerId, unitId);
+        const player = this.playerService.addUnitToPlayer(playerId, unitId); // dodaj jednostke po id definicji
         if (player) {
             return player;
         } else {
@@ -88,7 +88,7 @@ export class PlayerController {
     deleteUnitFromPlayer(
         @Param('playerId', ParseIntPipe) playerId: number, 
         @Param('unitUniqueId', ParseIntPipe) unitUniqueId: number) {
-        const player = this.playerService.deleteUnitFromPlayer(playerId, unitUniqueId);
+        const player = this.playerService.deleteUnitFromPlayer(playerId, unitUniqueId); // usun konkretna jednostke
         if (player) {
             return player;
         } else {
@@ -100,7 +100,7 @@ export class PlayerController {
     @ApiOperation({ summary: 'Get player budget by ID' })
     @ApiResponse({ status: 200, description: 'The budget of the player with the specified ID.' })
     getPlayerBudget(@Param('playerId', ParseIntPipe) playerId: number) {
-        const budget = this.playerService.getPlayerBudget(playerId);
+        const budget = this.playerService.getPlayerBudget(playerId); // oblicz budzet gracza
         if (budget !== undefined) {
             return { budget };
         } else {

@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
-import { UnitsService } from './units.service';
-import { UnitsController } from './units.controller';
+import { Module } from '@nestjs/common'; // dekorator modulu
+import { UnitsService } from './units.service'; // serwis jednostek
+import { UnitsController } from './units.controller'; // kontroler jednostek
 
 @Module({
-  providers: [UnitsService],
-  controllers: [UnitsController],
-  exports: [UnitsService],
+  providers: [UnitsService], // rejestracja serwisu
+  controllers: [UnitsController], // rejestracja kontrolera
+  exports: [UnitsService], // udostepnij serwis
 })
 export class UnitsModule {}

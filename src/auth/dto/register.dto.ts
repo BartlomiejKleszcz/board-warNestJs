@@ -1,18 +1,28 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail, // walidacja email
+  IsNotEmpty, // pole wymagane
+  IsString, // musi byc string
+  Matches, // regex
+  MinLength, // minimalna dlugosc
+} from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail()
-  email!: string;
+  @IsEmail() // poprawny format email
+  email!: string; // adres logowania
 
-  @IsNotEmpty()
-  @MinLength(6)
-  password!: string;
+  @IsNotEmpty() // wymagane
+  @MinLength(6) // min 6 znakow
+  password!: string; // haslo rejestracji
 
-  @IsString()
-  @IsNotEmpty()
-  displayName!: string;
+  @IsString() // tekst
+  @IsNotEmpty() // wymagane
+  @MinLength(4) // min 4 znaki
+  @Matches(/^[A-Za-z]+$/, {
+    message: 'Login moze zawierac tylko litery (A-Z)', // komunikat walidacji
+  })
+  displayName!: string; // widoczna nazwa gracza
 
-  @IsString()
-  @IsNotEmpty()
-  color!: string;
+  @IsString() // hex/kolor
+  @IsNotEmpty() // wymagane
+  color!: string; // kolor gracza
 }

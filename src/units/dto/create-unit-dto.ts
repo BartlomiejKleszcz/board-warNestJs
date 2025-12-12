@@ -1,34 +1,34 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsString, max } from "class-validator";
-import * as unitTypes from "../domain/unit.types";
+import { ApiProperty } from "@nestjs/swagger"; // dokumentacja pola
+import { IsInt, IsString, max } from "class-validator"; // walidatory
+import * as unitTypes from "../domain/unit.types"; // typy jednostek
 
 export class CreateUnitDto {
-    @ApiProperty()
-    @IsString()
+    @ApiProperty() // opis w swaggerze
+    @IsString() // nazwa jako string
     name: string;
     @ApiProperty()
-    @IsString()
+    @IsString() // id jednostki jako string
     id: unitTypes.UnitName;
     @ApiProperty()
-    @IsInt()
+    @IsInt() // liczba HP
     maxHp: number;
     @ApiProperty()
-    @IsInt()
+    @IsInt() // atak wrecz
     meleeAttack: number
     @ApiProperty()
-    @IsInt()
+    @IsInt() // atak dystansowy
     rangedAttack: number;
     @ApiProperty()
-    @IsInt()
+    @IsInt() // zasieg
     attackRange: number;
     @ApiProperty()
-    @IsInt()
+    @IsInt() // obrona
     defense: number;
     @ApiProperty()
-    @IsInt()
+    @IsInt() // szybkosc ruchu
     speed: number;
     @ApiProperty()
-    @IsInt()
+    @IsInt() // koszt jednostki
     cost: number;
 
     constructor(
@@ -42,14 +42,14 @@ export class CreateUnitDto {
         speed: number,
         cost: number,
     ){
-        this.name = name;
-        this.id = id;
-        this.maxHp = maxHp;
-        this.meleeAttack = meleeAttack;
-        this.rangedAttack = rangedAttack;
-        this.attackRange = attackRange;
-        this.defense = defense;
-        this.speed = speed;
-        this.cost = cost;
+        this.name = name; // ustaw nazwe
+        this.id = id; // ustaw id
+        this.maxHp = maxHp; // hp
+        this.meleeAttack = meleeAttack; // walka wrecz
+        this.rangedAttack = rangedAttack; // walka dystansowa
+        this.attackRange = attackRange; // zasieg
+        this.defense = defense; // obrona
+        this.speed = speed; // szybkosc
+        this.cost = cost; // koszt
     }
 }

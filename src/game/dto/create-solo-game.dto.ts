@@ -1,11 +1,11 @@
-import { IsInt, Min } from "class-validator";
+import { IsInt, Min } from "class-validator"; // walidacja ID gracza
 
 export class CreateSoloGameDto {
-    @IsInt()
-    @Min(1)
-    playerId: number;
+    @IsInt() // liczba calkowita
+    @Min(1) // minimalne ID
+    playerId: number; // id gracza
 
     constructor(playerId: number){
-        this.playerId = playerId;
+        this.playerId = playerId; // przypisz id
     }
 }

@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
-import { PlayerService } from './player.service';
-import { PlayerController } from './player.controller';
-import { UnitsModule } from 'src/units/units.module';
-import { PlayerRepositoryAdapter } from 'src/infrastructure/PlayerRepositoryAdapter';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { Module } from '@nestjs/common'; // dekorator modulu
+import { PlayerService } from './player.service'; // logika gracza
+import { PlayerController } from './player.controller'; // endpointy gracza
+import { UnitsModule } from 'src/units/units.module'; // zaleznosc jednostki
+import { PlayerRepositoryAdapter } from 'src/infrastructure/PlayerRepositoryAdapter'; // adapter repo
+import { PrismaModule } from 'src/prisma/prisma.module'; // dostep do bazy
 
 @Module({
-  imports: [UnitsModule, PrismaModule],
-  providers: [PlayerService, PlayerRepositoryAdapter],
-  controllers: [PlayerController],
-  exports: [PlayerService],
+  imports: [UnitsModule, PrismaModule], // moduly wspolne
+  providers: [PlayerService, PlayerRepositoryAdapter], // serwis + repo
+  controllers: [PlayerController], // kontroler REST
+  exports: [PlayerService], // udostepnij serwis
 })
 export class PlayerModule {}

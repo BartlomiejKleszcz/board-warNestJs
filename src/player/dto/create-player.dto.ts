@@ -1,15 +1,15 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator"; // walidacja prostego DTO
 
 export class CreatePlayerDto {
-    @IsString()
-    @IsNotEmpty()
+    @IsString() // nazwa jako string
+    @IsNotEmpty() // wymagane
     name: string;
-    @IsString()
-    @IsNotEmpty()
+    @IsString() // kolor jako string
+    @IsNotEmpty() // wymagane
     color: string;
 
     constructor(name: string, color: string) {
-        this.name = name;
-        this.color = color;
+        this.name = name; // przypisz nazwe
+        this.color = color; // przypisz kolor
     }
 }

@@ -1,29 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, GameActionType as PrismaGameActionType, GameStatus as PrismaGameStatus, SnapshotKind as PrismaSnapshotKind } from '@prisma/client';
-import { BoardService } from 'src/board/board.service';
-import { PlayerService } from 'src/player/player.service';
-import { Game } from './domain/game';
-import { CreateSoloGameDto } from './dto/create-solo-game.dto';
-import { Unit } from 'src/units/domain/unit.types';
-import { UnitsService } from 'src/units/units.service';
-import { Player } from 'src/player/domain/player';
-import { Board } from 'src/board/domain/board';
-import { HexCoords } from 'src/board/domain/hex.types';
-import { countMovement } from 'src/board/domain/hex.utils';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common'; // DI i 404
+import { Prisma, GameActionType as PrismaGameActionType, GameStatus as PrismaGameStatus, SnapshotKind as PrismaSnapshotKind } from '@prisma/client'; // typy Prisma
+import { BoardService } from 'src/board/board.service'; // logika planszy
+import { PlayerService } from 'src/player/player.service'; // logika gracza
+import { Game } from './domain/game'; // domenowy typ gry
+import { CreateSoloGameDto } from './dto/create-solo-game.dto'; // dto tworzenia gry
+import { Unit } from 'src/units/domain/unit.types'; // typ jednostki
+import { UnitsService } from 'src/units/units.service'; // serwis jednostek
+import { Player } from 'src/player/domain/player'; // model gracza
+import { Board } from 'src/board/domain/board'; // model planszy
+import { HexCoords } from 'src/board/domain/hex.types'; // koordy heksowe
+import { countMovement } from 'src/board/domain/hex.utils'; // licznik ruchu
+import { PrismaService } from 'src/prisma/prisma.service'; // klient bazy
 import {
   GameState,
   HexTileState,
   PlayerInGameState,
   UnitOnBoardState,
-} from './model/game-state';
-import { ApplyActionDto } from './dto/apply-action.dto';
+} from './model/game-state'; // struktury stanu gry
+import { ApplyActionDto } from './dto/apply-action.dto'; // dto akcji
 
 @Injectable()
 export class GameService {
 
-    private games: Game[] = [];
-    private idCounter = 1; 
+    private games: Game[] = []; // gry przechowywane w pamieci
+    private idCounter = 1; // licznik id gier 
 
     constructor(
         private readonly playerService: PlayerService, 
@@ -206,12 +206,18 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
   }
 
   async applyAction(gameId: number, actionDto: ApplyActionDto): Promise<GameState> {
+    // Pobierz aktualny stan gry z bazy.
     const currentState = await this.getGameState(gameId);
+    // Zrób głęboką kopię stanu na potrzeby logów/snapshotów.
     const stateBefore = this.cloneState(currentState);
+    // Wylicz nowy stan po zastosowaniu akcji.
     const updatedState = this.reduceAction(this.cloneState(currentState), actionDto);
+    // Zapisz rzuty RNG przekazane w akcji (jeśli są).
     const rngRolls = actionDto.rolls ?? (actionDto.payload as any)?.rolls ?? null;
 
+    // W jednej transakcji zapisujemy nowy stan gry, log akcji i snapshoty.
     await this.prisma.$transaction([
+      // Aktualizacja rekordu gry o nowy stan i status.
       this.prisma.game.update({
         where: { id: gameId },
         data: {
@@ -219,6 +225,7 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
           status: updatedState.status as PrismaGameStatus,
         },
       }),
+      // Log pojedynczej akcji gracza wraz z kopiami stanów.
       this.prisma.gameAction.create({
         data: {
           gameId,
@@ -231,26 +238,32 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
           stateAfter: updatedState as unknown as Prisma.InputJsonValue,
         },
       }),
+      // Snapshot stanu przed akcją (ułatwia odtwarzanie historii/undo).
       this.prisma.gameStateSnapshot.create({
         data: this.toSnapshotData(gameId, stateBefore, 'before_action'),
       }),
+      // Snapshot stanu po akcji.
       this.prisma.gameStateSnapshot.create({
         data: this.toSnapshotData(gameId, updatedState, 'after_action'),
       }),
     ]);
 
+    // Zwróć zaktualizowany stan gry.
     return updatedState;
   }
 
   private reduceAction(currentState: GameState, actionDto: ApplyActionDto): GameState {
+    // Budujemy kolejny stan: kopiujemy dane, podbijamy status i klonujemy listę jednostek.
     const nextState: GameState = {
       ...currentState,
       status: this.bumpStatus(currentState.status),
       units: currentState.units.map(u => ({ ...u })),
     };
 
+    // Reakcja na konkretny typ akcji gracza.
     switch (actionDto.type) {
       case 'MOVE': {
+        // Przesuń jednostkę, gdy przekazano jej id oraz nowe współrzędne.
         const { unitId, q, r } = actionDto.payload ?? {};
         if (unitId !== undefined && q !== undefined && r !== undefined) {
           nextState.units = nextState.units.map(u =>
@@ -260,6 +273,7 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
         break;
       }
       case 'ATTACK': {
+        // Zdejmij punkty życia z celu; HP nie spada poniżej zera.
         const { targetUnitId, damage } = actionDto.payload ?? {};
         if (targetUnitId !== undefined && typeof damage === 'number') {
           nextState.units = nextState.units.map(u =>
@@ -271,6 +285,7 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
         break;
       }
       case 'END_TURN': {
+        // Zakończenie tury: zwiększ licznik i przełącz aktywnego gracza.
         nextState.turnNumber += 1;
         nextState.currentPlayerId = this.nextPlayerId(
           nextState.players,
@@ -360,21 +375,26 @@ async moveUnit(gameId: number, unitUniqueId: number, targetCoords: HexCoords): P
   }
 
   async getTrajectory(gameId: number) {
+    // Pobierz uporządkowane akcje i snapshoty w jednej transakcji, aby móc odtworzyć historię gry.
     const [actions, snapshots] = await this.prisma.$transaction([
+      // Lista akcji z danej gry, rosnąco po czasie utworzenia.
       this.prisma.gameAction.findMany({
         where: { gameId },
         orderBy: { createdAt: 'asc' },
       }),
+      // Snapshoty stanów gry, uporządkowane według tury i czasu utworzenia.
       this.prisma.gameStateSnapshot.findMany({
         where: { gameId },
         orderBy: [{ turnNumber: 'asc' }, { createdAt: 'asc' }],
       }),
     ]);
 
+    // Brak akcji i snapshotów oznacza brak historii dla danej gry.
     if (!actions.length && !snapshots.length) {
       throw new NotFoundException('Game trajectory not found');
     }
 
+    // Zwracamy pełną trajektorię gry: akcje + snapshoty.
     return { gameId, actions, snapshots };
   }
 

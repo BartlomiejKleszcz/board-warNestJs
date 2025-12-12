@@ -1,28 +1,28 @@
 // src/prisma/prisma.service.ts
-import 'dotenv/config';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import 'dotenv/config'; // ladowanie env
+import { Injectable, OnModuleInit } from '@nestjs/common'; // DI + hook init
+import { PrismaClient } from '@prisma/client'; // klient Prisma
+import { PrismaPg } from '@prisma/adapter-pg'; // adapter do pg
+import { Pool } from 'pg'; // pulka polaczen
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    const databaseUrl = process.env.DATABASE_URL;
+    const databaseUrl = process.env.DATABASE_URL; // pobierz URL bazy
 
     if (!databaseUrl) {
-      throw new Error('DATABASE_URL is not set');
+      throw new Error('DATABASE_URL is not set'); // walidacja configu
     }
 
-    const pool = new Pool({ connectionString: databaseUrl });
+    const pool = new Pool({ connectionString: databaseUrl }); // utworz pool PG
 
     super({
-      log: ['error', 'warn'],
-      adapter: new PrismaPg(pool),
+      log: ['error', 'warn'], // wlaczone logi
+      adapter: new PrismaPg(pool), // podmien adapter na pg
     });
   }
 
   async onModuleInit() {
-    await this.$connect();
+    await this.$connect(); // nawiaz polaczenie po starcie modulu
   }
 }

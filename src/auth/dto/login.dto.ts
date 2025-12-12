@@ -1,10 +1,10 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator'; // walidatory requestu
 
 export class LoginDto {
-  @IsEmail()
-  email!: string;
+  @IsEmail() // poprawny email
+  email!: string; // login
 
-  @IsNotEmpty()
-  @MinLength(6)
-  password!: string;
+  @IsNotEmpty() // wymagane
+  @MinLength(6) // min 6 znakow
+  password!: string; // haslo
 }

@@ -1,15 +1,15 @@
-import {UnitName } from "../domain/unit.types";
+import {UnitName } from "../domain/unit.types"; // identyfikatory jednostek
 
 type UnitTemplate = {
-    id: UnitName;
-    name: string;
-    maxHp: number;
-    meleeAttack: number;
-    rangedAttack: number;
-    attackRange: number;
-    defense: number;
-    speed: number;
-    cost: number;
+    id: UnitName; // typ jednostki
+    name: string; // nazwa widoczna
+    maxHp: number; // maksymalne HP
+    meleeAttack: number; // sila wrecz
+    rangedAttack: number; // sila dystansowa
+    attackRange: number; // zasieg strzalu
+    defense: number; // pancerz
+    speed: number; // zasieg ruchu
+    cost: number; // koszt rekrutacji
 };
 
 export const UNIT_TEMPLATES: Record<UnitName, UnitTemplate> = {

@@ -1,27 +1,27 @@
-import { HexCoords } from "src/board/domain/hex.types";
-import { Unit, UnitName } from "./unit.types";
+import { HexCoords } from "src/board/domain/hex.types"; // koordy heksowe
+import { Unit, UnitName } from "./unit.types"; // kontrakt jednostki
 
 export class GameUnit implements Unit {
 
-    public static globalIdCounter = 1;
+    public static globalIdCounter = 1; // prosty licznik unikalnych id
     constructor(
-        public name: string,
-        public id: UnitName,
-        public maxHp: number,
-        public meleeAttack: number,
-        public rangedAttack: number,
-        public attackRange: number,
-        public defense: number,
-        public speed: number,
-        public cost: number,
-        public uniqueId: number = getUniqueIdForNewInstance(),
-        public position: HexCoords | null = null,
-        public playerId: number = 0
+        public name: string, // nazwa jednostki
+        public id: UnitName, // typ jednostki
+        public maxHp: number, // HP
+        public meleeAttack: number, // atak wrecz
+        public rangedAttack: number, // atak dystansowy
+        public attackRange: number, // zasieg strzalu
+        public defense: number, // obrona
+        public speed: number, // szybkosc ruchu
+        public cost: number, // koszt rekrutacji
+        public uniqueId: number = getUniqueIdForNewInstance(), // unikalny egzemplarz
+        public position: HexCoords | null = null, // polozenie na mapie
+        public playerId: number = 0 // wlasciciel
     ){}
 
 
 }
 
     function getUniqueIdForNewInstance(): number {
-        return GameUnit.globalIdCounter++;
+        return GameUnit.globalIdCounter++; // inkrementuj licznik globalny
     }
