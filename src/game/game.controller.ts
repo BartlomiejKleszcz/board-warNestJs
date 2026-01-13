@@ -14,6 +14,7 @@ import { SetUnitPosition } from './dto/SetUnitPosition.dto'; // dto ustawienia p
 import { HexCoords } from 'src/board/domain/hex.types'; // koordy heksowe
 import { Game } from './domain/game'; // typ gry
 import { ApplyActionDto } from './dto/apply-action.dto'; // dto akcji stanu
+import { ApplyAiTurnDto } from './dto/apply-ai-turn.dto'; // dto AI tury
 
 @Controller('game')
 export class GameController {
@@ -67,5 +68,14 @@ export class GameController {
     @Body() actionDto: ApplyActionDto,
   ) {
     return this.gameService.applyAction(gameId, actionDto); // wykonaj akcje i zapisz stan
+  }
+
+  @Post(':gameId/ai/turn')
+  @ApiOperation({ summary: 'apply AI turn for enemy player' })
+  async applyAiTurn(
+    @Param('gameId', ParseIntPipe) gameId: number,
+    @Body() dto: ApplyAiTurnDto,
+  ) {
+    return this.gameService.applyAiTurn(gameId, dto);
   }
 }
