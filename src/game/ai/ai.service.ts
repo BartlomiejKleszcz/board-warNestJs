@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'; // nest DI
-import { countMovement } from 'src/board/domain/hex.utils'; // distance helper
-import { UnitFactory } from 'src/units/domain/unit-factory'; // unit stats
-import {
+import { countMovement } from '../../board/domain/hex.utils'; // distance helper
+import { UnitFactory } from '../../units/domain/unit-factory'; // unit stats
+import type {
   GameState,
   HexTileState,
   UnitOnBoardState,
@@ -128,28 +128,30 @@ export class AiService {
       }
     });
 
-    const reachable = this.getReachableTiles(
+    const reachable: Array<{ q: number; r: number; cost: number }> =
+      this.getReachableTiles(
       state.tiles,
       { q: unit.q, r: unit.r },
       unitTemplate.speed,
       blocked,
     );
 
-    let best: { q: number; r: number; cost: number; dist: number } | null =
-      null;
-    reachable.forEach((value) => {
+    type MoveCandidate = { q: number; r: number; cost: number; dist: number };
+    let best: MoveCandidate | undefined;
+    for (const value of reachable) {
       const dist = countMovement(
         { q: value.q, r: value.r },
         { q: target.q, r: target.r },
       );
-      if (!best) {
-        best = { ...value, dist };
-        return;
+      const candidate: MoveCandidate = { ...value, dist };
+      if (
+        !best ||
+        candidate.dist < best.dist ||
+        (candidate.dist === best.dist && candidate.cost < best.cost)
+      ) {
+        best = candidate;
       }
-      if (dist < best.dist || (dist === best.dist && value.cost < best.cost)) {
-        best = { ...value, dist };
-      }
-    });
+    }
 
     if (!best || best.dist >= currentDistance) {
       return null;
@@ -200,7 +202,7 @@ export class AiService {
     start: { q: number; r: number },
     maxCost: number,
     blocked: Set<CoordKey>,
-  ) {
+  ): Array<{ q: number; r: number; cost: number }> {
     const tileMap = new Map<CoordKey, HexTileState>();
     tiles.forEach((tile) => {
       tileMap.set(this.coordKey(tile.q, tile.r), tile);
@@ -237,7 +239,7 @@ export class AiService {
       }
     }
 
-    const reachable: { q: number; r: number; cost: number }[] = [];
+    const reachable: Array<{ q: number; r: number; cost: number }> = [];
     costs.forEach((cost, key) => {
       const [q, r] = key.split(':').map(Number);
       reachable.push({ q, r, cost });
