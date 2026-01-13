@@ -78,7 +78,7 @@ describe('GameService', () => {
     };
 
     // Wstrzykujemy przygotowana gre do prywatnego pola service (trick testowy).
-    (service as any).games = [game];
+    (service as unknown as { games: Game[] }).games = [game];
 
     // Mock PlayerService: ma zwrocic gracza z jednostka, ktora posiada pozycje startowa.
     playerServiceMock.findById.mockResolvedValue({
