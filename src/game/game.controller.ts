@@ -62,7 +62,7 @@ export class GameController {
   }
 
   @Post(':gameId/actions')
-  @ApiOperation({ summary: 'apply action and update game state' })
+  @ApiOperation({ summary: 'apply action and update game state (stateful)' })
   async applyAction(
     @Param('gameId', ParseIntPipe) gameId: number,
     @Body() actionDto: ApplyActionDto,
