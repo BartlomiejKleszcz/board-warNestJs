@@ -22,6 +22,8 @@ import {
   UnitOnBoardState,
 } from './model/game-state'; // struktury stanu gry
 import { ApplyActionDto } from './dto/apply-action.dto'; // dto akcji
+import { ApplyAiTurnDto } from './dto/apply-ai-turn.dto'; // dto AI tury
+import { AiService } from './ai/ai.service'; // AI logic
 
 @Injectable()
 export class GameService {
@@ -33,6 +35,7 @@ export class GameService {
     private readonly boardService: BoardService,
     private readonly unitService: UnitsService,
     private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
   ) {}
 
   async createSoloGame(dto: CreateSoloGameDto): Promise<Game> {
@@ -40,7 +43,7 @@ export class GameService {
     if (!player) throw new Error("Player doesn't exist");
 
     const colorEnemy = player.color === 'red' ? 'blue' : 'red';
-    let enemy = await this.playerService.findById(1); // lub inny stały ID
+    let enemy = await this.playerService.findById(2); // lub inny stały ID
     if (!enemy) enemy = await this.playerService.create('Enemy', colorEnemy);
     enemy.turn = false;
 
@@ -274,6 +277,25 @@ export class GameService {
 
     // Zwróć zaktualizowany stan gry.
     return updatedState;
+  }
+
+  async applyAiTurn(
+    gameId: number,
+    dto: ApplyAiTurnDto,
+  ): Promise<GameState> {
+    let state = await this.getGameState(gameId);
+    const aiPlayerId = dto.playerId ?? state.currentPlayerId;
+
+    if (state.currentPlayerId !== aiPlayerId) {
+      throw new NotFoundException('AI is not the active player');
+    }
+
+    const actions = this.aiService.buildTurnActions(state, aiPlayerId);
+    for (const action of actions) {
+      state = await this.applyAction(gameId, action);
+    }
+
+    return state;
   }
 
   private reduceAction(
