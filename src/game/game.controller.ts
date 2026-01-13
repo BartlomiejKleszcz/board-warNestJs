@@ -71,7 +71,7 @@ export class GameController {
   }
 
   @Post(':gameId/ai/turn')
-  @ApiOperation({ summary: 'apply AI turn for enemy player' })
+  @ApiOperation({ summary: 'apply AI turn for enemy player (server-side)' })
   async applyAiTurn(
     @Param('gameId', ParseIntPipe) gameId: number,
     @Body() dto: ApplyAiTurnDto,
