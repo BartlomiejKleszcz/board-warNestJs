@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'; // dekorator modulu
 import { GameService } from './game.service'; // logika gry
-import { AiService } from './ai/ai.service'; // AI decisions
 import { GameController } from './game.controller'; // endpointy gry
+import { AiService } from './ai/ai.service'; // AI logic
 import { PlayerModule } from 'src/player/player.module'; // zaleznosc gracza
 import { BoardModule } from 'src/board/board.module'; // zaleznosc planszy
 import { UnitsModule } from 'src/units/units.module'; // zaleznosc jednostek

@@ -5,6 +5,7 @@ import { PlayerService } from 'src/player/player.service';
 import { BoardService } from 'src/board/board.service';
 import { UnitsService } from 'src/units/units.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AiService } from './ai/ai.service';
 
 describe('GameController', () => {
   let controller: GameController;
@@ -18,6 +19,7 @@ describe('GameController', () => {
         { provide: BoardService, useValue: {} },
         { provide: UnitsService, useValue: {} },
         { provide: PrismaService, useValue: {} },
+        { provide: AiService, useValue: { buildTurnActions: jest.fn() } },
       ],
     }).compile();
 
