@@ -7,12 +7,38 @@ import type {
   UnitOnBoardState,
 } from '../model/game-state'; // state types
 
-export type AiAction = {
-  type: 'MOVE' | 'ATTACK' | 'END_TURN';
+export type MovePayload = {
+  unitId: string;
+  q: number;
+  r: number;
+};
+
+export type AttackPayload = {
+  attackerUnitId: string;
+  targetUnitId: string;
+  damage: number;
+  mode: 'melee' | 'ranged';
+};
+
+export type MoveAction = {
+  type: 'MOVE';
   playerId: number;
-  payload?: Record<string, any>;
+  payload: MovePayload;
+};
+
+export type AttackAction = {
+  type: 'ATTACK';
+  playerId: number;
+  payload: AttackPayload;
   rolls?: number[];
 };
+
+export type EndTurnAction = {
+  type: 'END_TURN';
+  playerId: number;
+};
+
+export type AiAction = MoveAction | AttackAction | EndTurnAction;
 
 type CoordKey = string;
 
@@ -54,12 +80,15 @@ export class AiService {
     unit: UnitOnBoardState,
     enemyUnits: UnitOnBoardState[],
     aiPlayerId: number,
-  ): AiAction | null {
+  ): AttackAction | null {
     const unitTemplate = this.unitFactory.createFromName(unit.template);
     const inRange = enemyUnits
       .map((enemy) => ({
         enemy,
-        dist: countMovement({ q: unit.q, r: unit.r }, { q: enemy.q, r: enemy.r }),
+        dist: countMovement(
+          { q: unit.q, r: unit.r },
+          { q: enemy.q, r: enemy.r },
+        ),
       }))
       .filter(({ dist }) => dist <= unitTemplate.attackRange || dist <= 1);
 
@@ -82,9 +111,7 @@ export class AiService {
     );
 
     const mode =
-      distance <= 1 || unitTemplate.rangedAttack <= 0
-        ? 'melee'
-        : 'ranged';
+      distance <= 1 || unitTemplate.rangedAttack <= 0 ? 'melee' : 'ranged';
 
     const damageData = this.calculateDamage(
       unitTemplate.meleeAttack,
@@ -111,7 +138,7 @@ export class AiService {
     unit: UnitOnBoardState,
     enemyUnits: UnitOnBoardState[],
     aiPlayerId: number,
-  ): AiAction | null {
+  ): MoveAction | null {
     const unitTemplate = this.unitFactory.createFromName(unit.template);
     const target = this.pickClosestEnemy(unit, enemyUnits);
     if (!target) return null;
@@ -130,11 +157,11 @@ export class AiService {
 
     const reachable: Array<{ q: number; r: number; cost: number }> =
       this.getReachableTiles(
-      state.tiles,
-      { q: unit.q, r: unit.r },
-      unitTemplate.speed,
-      blocked,
-    );
+        state.tiles,
+        { q: unit.q, r: unit.r },
+        unitTemplate.speed,
+        blocked,
+      );
 
     type MoveCandidate = { q: number; r: number; cost: number; dist: number };
     let best: MoveCandidate | undefined;
@@ -172,7 +199,10 @@ export class AiService {
     return enemyUnits
       .map((enemy) => ({
         enemy,
-        dist: countMovement({ q: unit.q, r: unit.r }, { q: enemy.q, r: enemy.r }),
+        dist: countMovement(
+          { q: unit.q, r: unit.r },
+          { q: enemy.q, r: enemy.r },
+        ),
       }))
       .sort((a, b) => {
         if (a.dist !== b.dist) {
@@ -189,7 +219,8 @@ export class AiService {
     mode: 'melee' | 'ranged',
     defenderTemplateId: UnitOnBoardState['template'],
   ) {
-    const defenderTemplate = this.unitFactory.createFromName(defenderTemplateId);
+    const defenderTemplate =
+      this.unitFactory.createFromName(defenderTemplateId);
     const attackValue = mode === 'ranged' ? rangedAttack : meleeAttack;
     const rawDamage = attackValue - defenderTemplate.defense;
     const roll = Math.floor(Math.random() * 6) + 1;
@@ -267,7 +298,7 @@ export class AiService {
     return `${q}:${r}`;
   }
 
-  private buildEndTurn(playerId: number): AiAction {
+  private buildEndTurn(playerId: number): EndTurnAction {
     return { type: 'END_TURN', playerId };
   }
 
@@ -279,23 +310,19 @@ export class AiService {
 
     switch (action.type) {
       case 'MOVE': {
-        const { unitId, q, r } = action.payload ?? {};
-        if (unitId !== undefined && q !== undefined && r !== undefined) {
-          nextState.units = nextState.units.map((u) =>
-            u.unitId === String(unitId) ? { ...u, q, r } : u,
-          );
-        }
+        const { unitId, q, r } = action.payload;
+        nextState.units = nextState.units.map((u) =>
+          u.unitId === unitId ? { ...u, q, r } : u,
+        );
         break;
       }
       case 'ATTACK': {
-        const { targetUnitId, damage } = action.payload ?? {};
-        if (targetUnitId !== undefined && typeof damage === 'number') {
-          nextState.units = nextState.units.map((u) =>
-            u.unitId === String(targetUnitId)
-              ? { ...u, currentHP: Math.max(0, u.currentHP - damage) }
-              : u,
-          );
-        }
+        const { targetUnitId, damage } = action.payload;
+        nextState.units = nextState.units.map((u) =>
+          u.unitId === targetUnitId
+            ? { ...u, currentHP: Math.max(0, u.currentHP - damage) }
+            : u,
+        );
         break;
       }
       default:

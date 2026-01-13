@@ -279,10 +279,7 @@ export class GameService {
     return updatedState;
   }
 
-  async applyAiTurn(
-    gameId: number,
-    dto: ApplyAiTurnDto,
-  ): Promise<GameState> {
+  async applyAiTurn(gameId: number, dto: ApplyAiTurnDto): Promise<GameState> {
     let state = await this.getGameState(gameId);
     const aiPlayerId = dto.playerId ?? state.currentPlayerId;
 
