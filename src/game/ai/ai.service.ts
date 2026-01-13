@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common'; // nest DI
-import { countMovement } from '../../board/domain/hex.utils.js'; // distance helper
-
+import { countMovement } from '../../board/domain/square.utils'; // distance helper
 import { UnitFactory } from '../../units/domain/unit-factory'; // unit stats
-
 import type {
   GameState,
-  HexTileState,
+  SquareTileState,
   UnitOnBoardState,
-} from '../model/game-state.js'; // state types
+} from '../model/game-state'; // state types
 
 export type MovePayload = {
   unitId: string;
@@ -231,12 +229,12 @@ export class AiService {
   }
 
   private getReachableTiles(
-    tiles: HexTileState[],
+    tiles: SquareTileState[],
     start: { q: number; r: number },
     maxCost: number,
     blocked: Set<CoordKey>,
   ): Array<{ q: number; r: number; cost: number }> {
-    const tileMap = new Map<CoordKey, HexTileState>();
+    const tileMap = new Map<CoordKey, SquareTileState>();
     tiles.forEach((tile) => {
       tileMap.set(this.coordKey(tile.q, tile.r), tile);
     });
@@ -283,8 +281,8 @@ export class AiService {
   private getNeighbors(
     q: number,
     r: number,
-    tileMap: Map<CoordKey, HexTileState>,
-  ): HexTileState[] {
+    tileMap: Map<CoordKey, SquareTileState>,
+  ): SquareTileState[] {
     const dirs = [
       { q: 1, r: 0 },
       { q: -1, r: 0 },
@@ -293,7 +291,7 @@ export class AiService {
     ];
     return dirs
       .map((dir) => tileMap.get(this.coordKey(q + dir.q, r + dir.r)))
-      .filter((tile): tile is HexTileState => !!tile);
+      .filter((tile): tile is SquareTileState => !!tile);
   }
 
   private coordKey(q: number, r: number): CoordKey {

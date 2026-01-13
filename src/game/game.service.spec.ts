@@ -1,14 +1,17 @@
-
 import { Test, TestingModule } from '@nestjs/testing'; // narzędzia Nest do budowy modułu testowego
 import { GameService } from './game.service'; // serwis, który testujemy
 import { PlayerService } from 'src/player/player.service'; // zależność, którą zamokujemy
 import { BoardService } from 'src/board/board.service'; // zależność, którą zamokujemy
 import { UnitsService } from 'src/units/units.service'; // zależność, którą zamokujemy
 import { PrismaService } from 'src/prisma/prisma.service'; // zależność, którą zamokujemy
-import { TerrainType, HexTile, HexCoords } from 'src/board/domain/hex.types'; // typy planszy
+import { AiService } from './ai/ai.service'; // AI helper
+import {
+  TerrainType,
+  SquareTile,
+  SquareCoords,
+} from 'src/board/domain/square.types'; // typy planszy
 import { Game } from './domain/game'; // model gry
 import { Board } from 'src/board/domain/board'; // kontrakt planszy
-
 
 describe('GameService', () => {
   let service: GameService; // instancja serwisu testowanego
@@ -41,9 +44,9 @@ describe('GameService', () => {
 
   it('przesuwa jednostke na wskazane wspolrzedne, gdy pole jest przechodnie', async () => {
     // Ustawiamy dane docelowego pola, na ktore chcemy przesunac jednostke.
-    const targetCoords: HexCoords = { q: 2, r: 3 };
+    const targetCoords: SquareCoords = { q: 2, r: 3 };
     // Przygotowujemy pojedynczy kafelek planszy, ktory jest przechodni (passable = true).
-    const tile: HexTile = {
+    const tile: SquareTile = {
       coords: targetCoords,
       terrain: TerrainType.Plain,
       passable: true,
