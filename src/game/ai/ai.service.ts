@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'; // nest DI
-import { countMovement } from '../../board/domain/hex.utils'; // distance helper
+import { countMovement } from '../../board/domain/hex.utils.js'; // distance helper
 import { UnitFactory } from '../../units/domain/unit-factory'; // unit stats
 import type {
   GameState,
   HexTileState,
   UnitOnBoardState,
-} from '../model/game-state'; // state types
+} from '../model/game-state.js'; // state types
 
 export type MovePayload = {
   unitId: string;
