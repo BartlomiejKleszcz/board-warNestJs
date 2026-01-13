@@ -11,7 +11,7 @@ import { ApiOperation } from '@nestjs/swagger'; // swagger docs
 import { GameService } from './game.service'; // logika gry
 import { CreateSoloGameDto } from './dto/create-solo-game.dto'; // dto startu gry
 import { SetUnitPosition } from './dto/SetUnitPosition.dto'; // dto ustawienia pozycji
-import { HexCoords } from 'src/board/domain/hex.types'; // koordy heksowe
+import { SquareCoords } from 'src/board/domain/square.types'; // koordy planszy
 import { Game } from './domain/game'; // typ gry
 import { ApplyActionDto } from './dto/apply-action.dto'; // dto akcji stanu
 import { ApplyAiTurnDto } from './dto/apply-ai-turn.dto'; // dto AI tury
@@ -34,7 +34,7 @@ export class GameController {
     @Param('unitUniqueId', ParseIntPipe) unitUniqueId: number,
     @Body() setUnitPositionDto: SetUnitPosition,
   ): Game | undefined {
-    const coords: HexCoords = {
+    const coords: SquareCoords = {
       q: setUnitPositionDto.q,
       r: setUnitPositionDto.r,
     };
@@ -62,7 +62,7 @@ export class GameController {
   }
 
   @Post(':gameId/actions')
-  @ApiOperation({ summary: 'apply action and update game state' })
+  @ApiOperation({ summary: 'apply action and update game state (stateful)' })
   async applyAction(
     @Param('gameId', ParseIntPipe) gameId: number,
     @Body() actionDto: ApplyActionDto,
@@ -71,7 +71,9 @@ export class GameController {
   }
 
   @Post(':gameId/ai/turn')
-  @ApiOperation({ summary: 'apply AI turn for enemy player' })
+
+  @ApiOperation({ summary: 'apply AI turn for enemy player (server-side)' })
+
   async applyAiTurn(
     @Param('gameId', ParseIntPipe) gameId: number,
     @Body() dto: ApplyAiTurnDto,

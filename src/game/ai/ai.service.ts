@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'; // nest DI
 import { countMovement } from '../../board/domain/hex.utils.js'; // distance helper
-import { UnitFactory } from '../../units/domain/unit-factory.js'; // unit stats
+
+import { UnitFactory } from '../../units/domain/unit-factory'; // unit stats
+
 import type {
   GameState,
   HexTileState,
